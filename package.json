@@ -1,11 +1,5 @@
 {
-  "name": "api-mariorixe",
-  "version": "1.0.0",
-  "main": "src/app.js",
-  "author": "",
-  "license": "ISC",
-  "description": "",
-  "dependencies": {
+    "dependencies": {
     "cors": "^2.8.6",
     "dotenv": "^17.2.4",
     "env": "^0.0.2",
