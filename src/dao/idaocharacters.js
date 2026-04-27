@@ -1,0 +1,3 @@
+class IDAOCharacters {
+    selectAll() {};
+}
