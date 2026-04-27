@@ -1,4 +1,3 @@
-const mongoose = require("mongoose");
 module.exports = {
     connect_mongoose: async () => {
         const mongoose = require('mongoose');
