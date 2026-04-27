@@ -10,6 +10,9 @@ app.use(express.json());
 const charactersRouter = require('./routes/characters-routes');
 app.use('/characters', charactersRouter);
 
+const itemsRouter = require('./routes/items-routes');
+app.use('/items', itemsRouter);
+
 require('./dao/mongoose/connection').connect_mongoose();
 
 app.listen(3000, () => {

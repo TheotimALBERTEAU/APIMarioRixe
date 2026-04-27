@@ -2,10 +2,10 @@ const DAOFactory = require('../dao/dao-factory');
 
 module.exports = {
     getAll: async () => {
-        return await DAOFactory.getDAOCharacter().selectAll();
+        return await DAOFactory.getDAOItem().selectAll();
     },
 
     getOneById: async (id) => {
-        return await DAOFactory.getDAOCharacter().selectById(id);
+        return await DAOFactory.getDAOItem().selectById(id);
     }
 }
