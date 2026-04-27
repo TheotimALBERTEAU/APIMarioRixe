@@ -1,4 +1,4 @@
-const IDAOCharacter = require("../idaocharacters");
+const IDAOCharacters = require("../idaocharacters");
 const Character = require("./models/character-model");
 
 class DAOCharacterMongoose extends IDAOCharacters {
