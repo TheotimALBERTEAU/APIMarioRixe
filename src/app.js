@@ -13,6 +13,9 @@ app.use('/characters', charactersRouter);
 const itemsRouter = require('./routes/items-routes');
 app.use('/items', itemsRouter);
 
+const attacksRouter = require('./routes/attacks-routes');
+app.use('/attacks', attacksRouter);
+
 require('./dao/mongoose/connection').connect_mongoose();
 
 app.listen(3000, () => {

@@ -1,4 +1,3 @@
-const DAOCharacterMongoose = require("./mongoose/daocharacters-mongoose");
 module.exports = {
     // Retourne un IDEAOCharacter
 
@@ -14,6 +13,14 @@ module.exports = {
         if (process.env.BDD_MODE === "mongodb") {
             const DAOItemMongoose = require('./mongoose/daoitems-mongoose');
             return new DAOItemMongoose();
+        }
+
+    },
+
+    getDAOAttack: () => {
+        if (process.env.BDD_MODE === "mongodb") {
+            const DAOAttackMongoose = require('./mongoose/daoattacks-mongoose');
+            return new DAOAttackMongoose();
         }
 
     }
