@@ -1,3 +1,4 @@
+const DAOCharacterMongoose = require("./mongoose/daocharacters-mongoose");
 module.exports = {
     // Retourne un IDEAOCharacter
 
@@ -5,6 +6,14 @@ module.exports = {
         if (process.env.BDD_MODE === "mongodb") {
             const DAOCharacterMongoose = require('./mongoose/daocharacters-mongoose');
             return new DAOCharacterMongoose();
+        }
+
+    },
+
+    getDAOItem: () => {
+        if (process.env.BDD_MODE === "mongodb") {
+            const DAOItemMongoose = require('./mongoose/daoitems-mongoose');
+            return new DAOItemMongoose();
         }
 
     }
