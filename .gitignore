@@ -1,5 +1,6 @@
 # Dépendances
 node_modules/
+package-lock.json
 
 # Environnement (Contient tes mots de passe et clés secrètes)
 .env
