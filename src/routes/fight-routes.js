@@ -96,5 +96,78 @@ async function applyAttack(attack, self, enemy) {
     return { log, self, enemy };
 }
 
+async function applyItem(item, self, enemy) {
+    let log = `${self.name} uses ${item.name}!`;
+
+    if (item.category === 'recovery') {
+        if (item.hp > 0) {
+            self.hp = Math.min(self.hp + item.hp, 100);
+            log += ` Recovered ${item.hp} HP!`;
+        }
+        if (item.fp > 0) {
+            self.fp = Math.min(self.fp + item.fp, 100);
+            log += ` Recovered ${item.fp} FP!`;
+        }
+    }
+
+    if (item.category === 'attack' && item.damage > 0) {
+        const damage = Math.max(1, item.damage - enemy.defense);
+        enemy.hp -= damage;
+        log += ` ${damage} damage!`;
+    }
+
+    // Buff/Debuff
+    if (item.effect && item.effect.slug) {
+        const effect = await Effect.findOne({ slug: item.effect.slug });
+        if (effect) {
+            const roll = Math.random();
+            if (roll < (item.effect.chance || 1.0)) {
+                const target = item.category === 'debuff' ? enemy : self;
+                const effectResult = applyEffectToCharacter(
+                    effect,
+                    target,
+                    item.category === 'debuff'
+                );
+                if (item.category === 'debuff') {
+                    enemy = effectResult.character;
+                } else {
+                    self = effectResult.character;
+                }
+                log += ` ${effectResult.log}`;
+            }
+        }
+    }
+
+    enemy.hp = Math.max(0, enemy.hp);
+    self.hp = Math.max(0, self.hp);
+
+    return { log, self, enemy };
+}
+
+function applyEffectToCharacter(effect, character, isDebuff) {
+    let log = `${effect.name} applied!`;
+
+    if (!character.status) {
+        character.status = [];
+    }
+
+    // À implémenter selon les mechanics de l'effet
+    if (effect.mechanics.damagePerTurn) {
+        character.status.push({
+            type: effect.slug,
+            damagePerTurn: effect.mechanics.damagePerTurn
+        });
+        log = `${character.name} is ${effect.name}!`;
+    }
+
+    if (effect.mechanics.immobilized) {
+        character.immobilized = true;
+        log = `${character.name} is immobilized!`;
+    }
+
+    return { character, log };
+}
+
+
 
 module.exports = router;
