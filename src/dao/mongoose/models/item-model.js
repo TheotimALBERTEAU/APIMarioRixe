@@ -11,6 +11,7 @@ const Items = new mongoose.Schema({
     },
     category: {
         type: String,
+        enum: ['attack', 'recovery', 'buff', 'debuff', 'gamble'],
         required: true
     },
     hp: {
@@ -22,8 +23,8 @@ const Items = new mongoose.Schema({
         required: true
     },
     effect: {
-        type: String,
-        required: true
+        slug: { type: String, ref: 'Effect', default: null },
+        chance: { type: Number, min: 0, max: 1, default: 1.0 }
     }
 });
 
