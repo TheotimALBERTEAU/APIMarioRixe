@@ -26,6 +26,10 @@ const Items = new mongoose.Schema({
     effect: {
         slug: { type: String, ref: 'Effect', default: null },
         chance: { type: Number, min: 0, max: 1, default: 1.0 }
+    },
+    sprite: {
+        type: String,
+        required: true
     }
 });
 

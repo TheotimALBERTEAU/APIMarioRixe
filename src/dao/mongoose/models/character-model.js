@@ -5,11 +5,11 @@ const Characters = new mongoose.Schema({
         type: String,
         required: true
     },
-    sprite: {
-        type: String,
+    hp: {
+        type: Number,
         required: true
     },
-    hp: {
+    attack: {
         type: Number,
         required: true
     },
@@ -17,10 +17,22 @@ const Characters = new mongoose.Schema({
         type: Number,
         required: true
     },
-    attack: {
-        type: Number,
+    fight_sprite: {
+        type: String,
         required: true
-    }
+    },
+    inv_sprite: {
+        type: String,
+        required: true
+    },
+    move_set: [{
+        type: mongoose.Schema.Types.ObjectId,
+        ref: 'Attacks'
+    }],
+    item_set: [{
+        type: mongoose.Schema.Types.ObjectId,
+        ref: 'Items'
+    }]
 });
 
 module.exports = mongoose.model('Characters', Characters);
