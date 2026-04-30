@@ -21,3 +21,6 @@ Thumbs.db
 # Sonar
 sonar-project.properties
 .scannerwork
+
+# IA
+/ai

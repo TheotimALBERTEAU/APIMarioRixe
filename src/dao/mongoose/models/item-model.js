@@ -1,4 +1,5 @@
 const mongoose = require("mongoose");
+const {userConnection} = require("../connection");
 
 const Items = new mongoose.Schema({
     slug: {
