@@ -66,8 +66,8 @@ async function applyAttack(attack, self, enemy) {
 
     // Dégâts
     if (attack.damage > 0) {
-        const damage = Math.max(1, attack.damage - enemy.defense);
-        enemy.hp -= damage + self.attack - enemy.defense;
+        const damage = Math.max(1, attack.damage + self.attack - enemy.defense);
+        enemy.hp -= damage;
         log += ` ${damage} damage!`;
     }
 
@@ -77,14 +77,32 @@ async function applyAttack(attack, self, enemy) {
         log += ` Recovered ${attack.damage} HP!`;
     }
 
-    // Effet
-    if (attack.effect && attack.effect.slug) {
-        const effect = await Effect.findOne({ slug: attack.effect.slug });
+    // Gestion de l'effet (Correction ici)
+    if (attack.effect) {
+        // Gère si effect est une string "burn" ou un objet { slug: "burn" }
+        const effectSlug = typeof attack.effect === 'string' ? attack.effect : attack.effect.slug;
+        const effectChance = attack.effect.chance || 1.0;
+
+        const effect = await Effect.findOne({ slug: effectSlug });
+
         if (effect) {
             const roll = Math.random();
-            if (roll < (attack.effect.chance || 1.0)) {
-                const effectResult = applyEffectToCharacter(effect, enemy, true);
-                enemy = effectResult.character;
+            if (roll < effectChance) {
+                let isBeneficial = (effect.type === 'buff' || effect.type === 'recovery');
+                let target = isBeneficial ? self : enemy;
+
+                if (effectSlug === 'hp_drain') {
+                    const drain = effect.mechanics.drainPerTurn;
+                    enemy.hp = Math.max(0, enemy.hp - drain);
+                    self.hp = Math.min(100, self.hp + drain);
+                    log += ` Drained ${drain} HP!`;
+                }
+
+                const effectResult = applyEffectToCharacter(effect, target);
+
+                if (isBeneficial) self = effectResult.character;
+                else enemy = effectResult.character;
+
                 log += ` ${effectResult.log}`;
             }
         }
@@ -116,7 +134,6 @@ async function applyItem(item, self, enemy) {
         log += ` ${damage} damage!`;
     }
 
-    // Buff/Debuff
     if (item.effect && item.effect.slug) {
         const effect = await Effect.findOne({ slug: item.effect.slug });
         if (effect) {
@@ -144,25 +161,82 @@ async function applyItem(item, self, enemy) {
     return { log, self, enemy };
 }
 
-function applyEffectToCharacter(effect, character, isDebuff) {
+function applyEffectToCharacter(effect, character) {
     let log = `${effect.name} applied!`;
+    const mech = effect.mechanics;
 
-    if (!character.status) {
-        character.status = [];
+    if (!character.status) character.status = [];
+
+    if (mech.immuneEnemies?.includes(character.type)) {
+        return { character, log: `${character.name} is immune to ${effect.name}!` };
     }
 
-    // À implémenter selon les mechanics de l'effet
-    if (effect.mechanics.damagePerTurn) {
+    Object.keys(mech).forEach(key => {
+        const val = mech[key];
+        if (val === null || val === false) return;
+
+        switch (key) {
+            case 'curesAllStatus':
+                character.status = [];
+                character.immobilized = false;
+                break;
+            case 'curesStatus':
+                character.status = character.status.filter(s => !val.includes(s.slug));
+                break;
+            case 'setHpTo':
+                character.hp = val;
+                break;
+            case 'swapHpFp':
+                [character.hp, character.fp] = [character.fp, character.hp];
+                break;
+            case 'damageAmount':
+                if (mech.instantEffect) character.hp = Math.max(0, character.hp - val);
+                break;
+        }
+    });
+
+    if (!mech.instantEffect) {
+        const existingIndex = character.status.findIndex(s => s.slug === effect.slug);
+
+        if (existingIndex !== -1 && !mech.stackable) {
+            character.status[existingIndex].duration = mech.duration || 3;
+            return { character, log: `${effect.name} refreshed!` };
+        }
+
+        if (mech.attackMultiplier) character.attack *= mech.attackMultiplier;
+        if (mech.attackIncrease) character.attack += mech.attackIncrease;
+        if (mech.attackReduction) character.attack = Math.max(0, character.attack - mech.attackReduction);
+
+        if (mech.defenseMultiplier) character.defense *= mech.defenseMultiplier;
+        if (mech.speedMultiplier) character.speed *= mech.speedMultiplier;
+
+        if (mech.immobilized) character.immobilized = true;
+        if (mech.noDamage) character.invincible = true;
+        if (mech.skipTurn) character.skipNextTurn = true;
+        if (mech.extraTurn) character.hasExtraTurn = true;
+        if (mech.nextAttackCritical) character.nextHitCritical = true;
+
         character.status.push({
-            type: effect.slug,
-            damagePerTurn: effect.mechanics.damagePerTurn
+            slug: effect.slug,
+            name: effect.name,
+            duration: mech.duration,
+            mechanics: {
+                damagePerTurn: mech.damagePerTurn,
+                healPerTurn: mech.healPerTurn,
+                fpHealPerTurn: mech.fpHealPerTurn,
+                drainPerTurn: mech.drainPerTurn,
+                missChance: mech.missChance,
+                targetMissChance: mech.targetMissChance,
+                reflectDamage: mech.reflectDamage,
+                reflectDamagePercent: mech.reflectDamagePercent,
+                fpCostMultiplier: mech.fpCostMultiplier,
+                damageMultiplier: mech.damageMultiplier,
+                damageReduction: mech.damageReduction,
+                ...mech
+            }
         });
-        log = `${character.name} is ${effect.name}!`;
-    }
 
-    if (effect.mechanics.immobilized) {
-        character.immobilized = true;
-        log = `${character.name} is immobilized!`;
+        log = `${character.name} is affected by ${effect.name}!`;
     }
 
     return { character, log };
