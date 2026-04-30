@@ -77,34 +77,36 @@ async function applyAttack(attack, self, enemy) {
         log += ` Recovered ${attack.damage} HP!`;
     }
 
-    // Gestion de l'effet (Correction ici)
     if (attack.effect) {
-        // Gère si effect est une string "burn" ou un objet { slug: "burn" }
         const effectSlug = typeof attack.effect === 'string' ? attack.effect : attack.effect.slug;
         const effectChance = attack.effect.chance || 1.0;
-
         const effect = await Effect.findOne({ slug: effectSlug });
 
-        if (effect) {
-            const roll = Math.random();
-            if (roll < effectChance) {
-                let isBeneficial = (effect.type === 'buff' || effect.type === 'recovery');
-                let target = isBeneficial ? self : enemy;
+        if (effect && Math.random() < effectChance) {
+            let target;
 
-                if (effectSlug === 'hp_drain') {
-                    const drain = effect.mechanics.drainPerTurn;
-                    enemy.hp = Math.max(0, enemy.hp - drain);
-                    self.hp = Math.min(100, self.hp + drain);
-                    log += ` Drained ${drain} HP!`;
-                }
-
-                const effectResult = applyEffectToCharacter(effect, target);
-
-                if (isBeneficial) self = effectResult.character;
-                else enemy = effectResult.character;
-
-                log += ` ${effectResult.log}`;
+            switch (attack.category) {
+                case 'debuff':
+                case 'attack':
+                case 'status':
+                case 'drain':
+                    target = enemy;
+                    break;
+                case 'buff':
+                case 'recovery':
+                case 'defense':
+                    target = self;
+                    break;
+                default:
+                    target = enemy;
             }
+
+            const effectResult = applyEffectToCharacter(effect, target);
+
+            if (target === self) self = effectResult.character;
+            else enemy = effectResult.character;
+
+            log += ` ${effectResult.log}`;
         }
     }
 
