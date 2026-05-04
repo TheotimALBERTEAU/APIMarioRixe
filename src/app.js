@@ -22,6 +22,9 @@ app.use('/fight', fightRouter);
 const usersRouter = require('./routes/users-routes');
 app.use('/users', usersRouter);
 
+const IARouter = require('./routes/IA-routes');
+app.use( IARouter);
+
 require('./dao/mongoose/connection').connect_mongoose();
 
 app.listen(3000, () => {
