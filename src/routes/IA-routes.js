@@ -4,7 +4,7 @@ const router = express.Router();
 
 // Initialisation de l'IA
 const genAI = new GoogleGenerativeAI(process.env.API_GEMINI_KEY);
-const model = genAI.getGenerativeModel({ model: "gemini-flash-lite-latest" });
+const model = genAI.getGenerativeModel({ model: "gemini-flash-latest" });
 
 router.post("/IA",async (req, res) => {
     const { Joueur, Enemy, Joueur_hp, Enemy_hp, logs } = req.body;    // 1. Réponse immédiate au client pour l'expérience utilisateur
